@@ -1,4 +1,8 @@
 #coding:utf-8
+
+# このサイトから
+# http://aidiary.hatenablog.com/entry/20111001/1317441171
+
 import wave
 from pylab import *
 
@@ -6,7 +10,7 @@ import pickle
 
 if __name__ == "__main__":
     # WAVEファイルから波形データを取得
-    wf = wave.open("res/ted02.wav", "rb")
+    wf = wave.open("res/a.wav", "rb")
 
     data = wf.readframes(wf.getnframes())
     data = frombuffer(data, dtype="int16")
