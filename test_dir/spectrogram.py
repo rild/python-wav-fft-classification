@@ -28,8 +28,9 @@ def load_wav_data(filename):
     sample_width = wavfile.getsampwidth()
     nsamples = wavfile.getnframes()
 
-    frames = wavfile.readframes(wavfile.getnframes())  # frameの読み込み
-    npframes = np.frombuffer(frames, dtype="int16")  # numpy.arrayに変換
+    frames = wavfile.readframes(wavfile.getnframes())  # frameの読み込み :binary data
+    npframes = np.frombuffer(frames, dtype="int16")  # numpy.arrayに変換 :integer data
+    print(npframes)
     npframes = npframes * (1.0 / 32768.0) # pcm
     # ref http://nonbiri-tereka.hatenablog.com/entry/2014/06/24/110011
 
@@ -42,6 +43,27 @@ def save_as_wav(resyn_sig, filename):
     # print (type(resyn_sig[1]))
     resyn_data = (resyn_sig * 32768.0).astype(np.int16)
     scipy.io.wavfile.write(filename, samplerate, resyn_data)
+
+# it seems to have something wrong 17-05-30 rild
+# import array
+# def save_wav(resyn_sig, filename):
+#     resyn_sig = (resyn_sig * 32768)
+#     resyn_sig = resyn_sig.astype(int)
+#
+#     write_wave = wave.Wave_write(filename)
+#     # write_wave.setparams(wavfile.getparams())
+#     w = wave.Wave_write(filename)
+#     w.setparams((
+#         1,  # channel
+#         2,  # byte width
+#         44100,  # sampling rate
+#         len(resyn_sig),  # number of frames
+#         "NONE", "not compressed"  # no compression
+#     ))
+#
+#     print(w.getnchannels())
+#     write_wave.writeframes(array.array('h', resyn_sig).tostring())
+#     write_wave.close()
 
 
 def triangle(length):
@@ -68,10 +90,7 @@ filename = "res/hanekawa_nandemoha01.wav"
 
 (samplerate, waveform) = load_wav_data(filename)
 
-# (samplerate, waveform) = load_wav_with_scipy(filename)
-
 sig = waveform
-
 NFFT = 2048  # フレームの大きさ
 OVERLAP = int(NFFT / 2)  # 窓をずらした時のフレームの重なり具合. half shiftが一般的らしい
 frame_length = sig.shape[0]  # wavファイルの全フレーム数
@@ -163,10 +182,15 @@ for i in range(len(spectrums)):
     resyn_sig[resyn_pos:resyn_pos + NFFT] += resyn_frame.astype(np.float64)
     resyn_pos += (NFFT - OVERLAP)
 
+print("compare")
+print(max(sig))
+print(max(resyn_sig))
 print("sig ==============")
-
 new_filename = "resyn" + "_NFFT_" + str(NFFT) + "_OVERLAP_" + str(OVERLAP)
 save_as_wav(resyn_sig, output_files_path + new_filename + ".wav")
+
+# print(len(resyn_sig))
+# save_wav(resyn_sig, output_files_path + new_filename + ".wav")
 
 ## スペクトログラムを保存
 save_spec_as_img(output_files_path + new_filename  + ".png")
