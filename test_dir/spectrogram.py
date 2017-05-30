@@ -63,9 +63,9 @@ def save_spec_as_img(new_filename='non'):
     plt.ylabel("frequency[Hz]")
     plt.colorbar()
     if new_filename != 'non':
-        plt.savefig(new_filename + ".png")
+        plt.savefig(new_filename)
 
-
+output_files_path = "out/"
 filename = "res/hanekawa_nandemoha01.wav"
 (samplerate, waveform) = load_wav_with_scipy(filename)
 
@@ -153,10 +153,10 @@ for i in range(len(freq_vectors)):
 print("sig ==============")
 
 new_filename = "resyn" + "_NFFT_" + str(NFFT) + "_OVERLAP_" + str(OVERLAP)
-save_as_wav(resyn_sig, new_filename + ".wav")
+save_as_wav(resyn_sig, output_files_path + new_filename + ".wav")
 
 ## スペクトログラムを保存
-save_spec_as_img(new_filename)
+save_spec_as_img(output_files_path + new_filename  + ".png")
 
 # # 窓関数
 # L = len(sig)
