@@ -8,22 +8,6 @@ import sys
 import scipy.io.wavfile
 import numpy as np
 
-
-def load_wav(filename):
-    wavfile = wave.open(filename, 'r')
-
-    nchannels = wavfile.getnchannels()
-    sampling_rate = wavfile.getframerate()
-    quantization_bits = wavfile.getsampwidth() * 8
-    sample_width = wavfile.getsampwidth()
-    nsamples = wavfile.getnframes()
-
-    samples = nsamples
-    if nchannels > 1:  # convert to mono
-        samples = (nsamples[:, 0] + nsamples[:, 1]) * 0.5
-
-    return (sampling_rate, samples)
-
 def load_wav_with_scipy(filename):
     try:
         wavedata = scipy.io.wavfile.read(filename)
@@ -68,7 +52,6 @@ def save_spec_as_img(new_filename='non'):
 output_files_path = "out/"
 filename = "res/hanekawa_nandemoha01.wav"
 (samplerate, waveform) = load_wav_with_scipy(filename)
-
 
 sig = waveform
 
