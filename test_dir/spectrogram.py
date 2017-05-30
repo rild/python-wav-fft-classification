@@ -6,25 +6,51 @@ from matplotlib import pylab as plt
 import scipy.io.wavfile
 import numpy as np
 
-'''
-一部の wave ファイルが読み込めない
-scipy じゃなくて wave を使うように書き直す
-5-30
-'''
+import wave
 
+def load_wav_all_data(filename):
+    wavfile = wave.open(filename, 'r')
 
-def load_wav_with_scipy(filename):
-    wavedata = scipy.io.wavfile.read(filename)
-    samplerate = int(wavedata[0])
-    wavef = wavedata[1] * (1.0 / 32768.0)  # pcm
-    if len(wavef.shape) > 1:  # convert to mono
-        wavef = (wavef[:, 0] + wavef[:, 1]) * 0.5
-    return (samplerate, wavef)
-    # try:
-    #
-    # except:
-    #     print("Error loading wav: " + filename)
-    #     return None
+    nchannels = wavfile.getnchannels()
+    sampling_rate = wavfile.getframerate()
+    quantization_bits = wavfile.getsampwidth() * 8
+    sample_width = wavfile.getsampwidth()
+    nsamples = wavfile.getnframes()
+
+    return (wavfile, nchannels, sampling_rate, quantization_bits, sample_width, nsamples)
+
+def load_wav_data(filename):
+    wavfile = wave.open(filename, 'r')
+
+    nchannels = wavfile.getnchannels()
+    sampling_rate = wavfile.getframerate()
+    quantization_bits = wavfile.getsampwidth() * 8
+    sample_width = wavfile.getsampwidth()
+    nsamples = wavfile.getnframes()
+
+    frames = wavfile.readframes(wavfile.getnframes())  # frameの読み込み
+    npframes = np.frombuffer(frames, dtype="int16")  # numpy.arrayに変換
+    npframes = npframes * (1.0 / 32768.0) # pcm
+    # ref http://nonbiri-tereka.hatenablog.com/entry/2014/06/24/110011
+
+    return (sampling_rate, npframes)
+
+#
+# def load_wav_with_scipy(filename):
+#     wavedata = scipy.io.wavfile.read(filename)
+#     samplerate = int(wavedata[0])
+#     wavef = wavedata[1] * (1.0 / 32768.0)  # pcm
+#     if len(wavef.shape) > 1:  # convert to mono
+#         wavef = (wavef[:, 0] + wavef[:, 1]) * 0.5
+#
+#     print(samplerate)
+#     print(wavef)
+#     return (samplerate, wavef)
+#     # try:
+#     #
+#     # except:
+#     #     print("Error loading wav: " + filename)
+#     #     return None
 
 
 def save_as_wav(resyn_sig, filename):
@@ -56,13 +82,16 @@ def save_spec_as_img(new_filename='non'):
         plt.savefig(new_filename)
 
 output_files_path = "out/"
-filename = "res/chord.wav"
-(samplerate, waveform) = load_wav_with_scipy(filename)
+filename = "res/hanekawa_nandemoha01.wav"
+
+(samplerate, waveform) = load_wav_data(filename)
+
+# (samplerate, waveform) = load_wav_with_scipy(filename)
 
 sig = waveform
 
 NFFT = 2048  # フレームの大きさ
-OVERLAP = int(NFFT / 4)  # 窓をずらした時のフレームの重なり具合. half shiftが一般的らしい
+OVERLAP = int(NFFT / 2)  # 窓をずらした時のフレームの重なり具合. half shiftが一般的らしい
 frame_length = sig.shape[0]  # wavファイルの全フレーム数
 time_song = float(frame_length) / samplerate  # 波形長さ(秒)
 time_unit = 1 / float(samplerate)  # 1サンプルの長さ(秒)
