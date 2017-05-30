@@ -35,24 +35,6 @@ def load_wav_data(filename):
 
     return (sampling_rate, npframes)
 
-#
-# def load_wav_with_scipy(filename):
-#     wavedata = scipy.io.wavfile.read(filename)
-#     samplerate = int(wavedata[0])
-#     wavef = wavedata[1] * (1.0 / 32768.0)  # pcm
-#     if len(wavef.shape) > 1:  # convert to mono
-#         wavef = (wavef[:, 0] + wavef[:, 1]) * 0.5
-#
-#     print(samplerate)
-#     print(wavef)
-#     return (samplerate, wavef)
-#     # try:
-#     #
-#     # except:
-#     #     print("Error loading wav: " + filename)
-#     #     return None
-
-
 def save_as_wav(resyn_sig, filename):
     #  2 ** 16 / 2
     #  32768.0
