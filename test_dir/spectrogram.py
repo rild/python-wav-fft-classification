@@ -6,17 +6,25 @@ from matplotlib import pylab as plt
 import scipy.io.wavfile
 import numpy as np
 
+'''
+一部の wave ファイルが読み込めない
+scipy じゃなくて wave を使うように書き直す
+5-30
+'''
+
+
 def load_wav_with_scipy(filename):
-    try:
-        wavedata = scipy.io.wavfile.read(filename)
-        samplerate = int(wavedata[0])
-        wavef = wavedata[1] * (1.0 / 32768.0)  # pcm
-        if len(wavef.shape) > 1:  # convert to mono
-            wavef = (wavef[:, 0] + wavef[:, 1]) * 0.5
-        return (samplerate, wavef)
-    except:
-        print("Error loading wav: " + filename)
-        return None
+    wavedata = scipy.io.wavfile.read(filename)
+    samplerate = int(wavedata[0])
+    wavef = wavedata[1] * (1.0 / 32768.0)  # pcm
+    if len(wavef.shape) > 1:  # convert to mono
+        wavef = (wavef[:, 0] + wavef[:, 1]) * 0.5
+    return (samplerate, wavef)
+    # try:
+    #
+    # except:
+    #     print("Error loading wav: " + filename)
+    #     return None
 
 
 def save_as_wav(resyn_sig, filename):
@@ -48,13 +56,13 @@ def save_spec_as_img(new_filename='non'):
         plt.savefig(new_filename)
 
 output_files_path = "out/"
-filename = "res/hanekawa_nandemoha01.wav"
+filename = "res/chord.wav"
 (samplerate, waveform) = load_wav_with_scipy(filename)
 
 sig = waveform
 
 NFFT = 2048  # フレームの大きさ
-OVERLAP = NFFT / 4  # 窓をずらした時のフレームの重なり具合. half shiftが一般的らしい
+OVERLAP = int(NFFT / 4)  # 窓をずらした時のフレームの重なり具合. half shiftが一般的らしい
 frame_length = sig.shape[0]  # wavファイルの全フレーム数
 time_song = float(frame_length) / samplerate  # 波形長さ(秒)
 time_unit = 1 / float(samplerate)  # 1サンプルの長さ(秒)
@@ -71,11 +79,13 @@ time_ruler = np.arange(start, stop, step)
 # 窓関数は周波数解像度が高いハミング窓を用います
 window = np.hamming(NFFT)
 
-spec = np.zeros([len(time_ruler), 1 + (NFFT / 2)])  # 転置状態で定義初期化
+spec = np.zeros([len(time_ruler), int(1 + (NFFT / 2))])  # 転置状態で定義初期化
 pos = 0
 
 # spec的な 復元したいからデータを残す
-spectrums = np.zeros([len(time_ruler), NFFT])
+# spectrums = np.zeros([len(time_ruler), NFFT])
+# astype(complex) をつけないと spectrum を代入する時に, 複素数成分が消えちゃう
+spectrums = np.zeros([len(time_ruler), NFFT]).astype(complex)
 
 # dpends on params: spec, spectrums
 def store_data(fft_data, spectrum):
@@ -111,7 +121,8 @@ for fft_index in range(len(time_ruler)):
         # 💥 4. 窓をずらして次のフレームへ
         pos += (NFFT - OVERLAP)
 
-resyn_sig = np.zeros([len(sig)])  # 転置状態で定義初期化
+# resyn_sig = np.zeros([len(sig)])
+resyn_sig = np.zeros([len(sig)]).astype(float)  # 転置状態で定義初期化
 resyn_pos = 0
 
 # cut_num = NFFT
@@ -124,7 +135,13 @@ cross_num = OVERLAP
 win = np.hanning(OVERLAP * 2)
 
 for i in range(len(spectrums)):
-    resyn_windowed = ifft(spectrums[i])
+    # resyn_windowed = ifft(spectrums[i]).astype(float)
+    # astype(float) is needed
+    # cuz original windowed sig data type is float64
+
+    resyn_windowed = np.real(ifft(spectrums[i])).astype(float)
+    # ref: http://org-technology.com/posts/smoother.html
+
     resyn_frame = resyn_windowed / window
 
     resyn_frame[:cross_num] *= win[:cross_num]
