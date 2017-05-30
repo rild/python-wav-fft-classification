@@ -3,8 +3,6 @@ from scipy import arange, hamming, sin, pi
 from scipy.fftpack import fft, ifft
 from matplotlib import pylab as plt
 
-import wave
-import sys
 import scipy.io.wavfile
 import numpy as np
 
@@ -77,7 +75,15 @@ spec = np.zeros([len(time_ruler), 1 + (NFFT / 2)])  # 転置状態で定義初�
 pos = 0
 
 # spec的な 復元したいからデータを残す
-freq_vectors = np.zeros([len(time_ruler), NFFT])
+spectrums = np.zeros([len(time_ruler), NFFT])
+
+# dpends on params: spec, spectrums
+def store_data(fft_data, spectrum):
+    for i in range(len(spec[fft_index])):
+        spec[fft_index][-i - 1] = fft_data[i]
+
+        # 復元したいから複素数も含めたデータを残したい
+        spectrums[fft_index][-i - 1] = spectrum[i]
 
 for fft_index in range(len(time_ruler)):
     # 💥 1.フレームの切り出します
@@ -91,7 +97,7 @@ for fft_index in range(len(time_ruler)):
         # rfftだと非負の周波数のみが得られます
         fft_result = np.fft.rfft(windowed)
         # 復元したいから複素数も含めたデータを残したい
-        freq_vector = fft(windowed)
+        spectrum = fft(windowed)
 
         # 💥 4.周波数には虚数成分を含むので絶対値をabsで求めてから2乗します
         # グラフで見やすくするために対数をとります
@@ -100,11 +106,7 @@ for fft_index in range(len(time_ruler)):
         # fft_data = np.abs(fft_result) ** 2
         # fft_data = np.abs(fft_result)
         # これで求められました。あとはspecに格納するだけです
-        for i in range(len(spec[fft_index])):
-            spec[fft_index][-i - 1] = fft_data[i]
-
-            # 復元したいから複素数も含めたデータを残したい
-            freq_vectors[fft_index][-i - 1] = freq_vector[i]
+        store_data(fft_data, spectrum)
 
         # 💥 4. 窓をずらして次のフレームへ
         pos += (NFFT - OVERLAP)
@@ -121,8 +123,8 @@ cross_num = OVERLAP
 # win = np.hamming(OVERLAP * 2)
 win = np.hanning(OVERLAP * 2)
 
-for i in range(len(freq_vectors)):
-    resyn_windowed = ifft(freq_vectors[i])
+for i in range(len(spectrums)):
+    resyn_windowed = ifft(spectrums[i])
     resyn_frame = resyn_windowed / window
 
     resyn_frame[:cross_num] *= win[:cross_num]
