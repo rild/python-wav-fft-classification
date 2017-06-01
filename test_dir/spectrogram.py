@@ -71,16 +71,7 @@ def save_wav(resyn_sig, filename):
     w.setframerate(samplerate)
     w.setnframes(len(samples))
     w.setcomptype('NONE', 'descrip')  # No compression
-    # w.setparams((
-    #     1,  # channel, mono: 1
-    #     2,  # byte width
-    #     samplerate,  # sampling rate
-    #     len(samples),  # number of frames
-    #     "NONE", "not compressed"  # no compression
-    # ))
 
-    # print(w.getnchannels())
-    #  write_wave.writeframes(array.array('h', resyn_sig).tostring())
     w.writeframes(samples.tostring())
     w.close()
 
@@ -231,10 +222,7 @@ for i in range(len(spectrums)):
 
 print("sig ==============")
 new_filename = "resyn" + "_NFFT_" + str(NFFT) + "_OVERLAP_" + str(OVERLAP)
-# save_as_wav(resyn_sig, output_files_path + new_filename + ".wav")
 
-# save_np_as_wav(output_files_path + 'test' + new_filename, resyn_sig)
-# print(len(resyn_sig))
 save_wav(resyn_sig, output_files_path + new_filename + ".wav")
 
 ## スペクトログラムを保存
