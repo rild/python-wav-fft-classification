@@ -54,6 +54,7 @@ def save_as_wav(resyn_sig, filename):
 
 # it seems to have something wrong 17-05-30 rild
 # solved: it was just because of two other instance ... つらい
+#     ref: http://introcs.cs.princeton.edu/python/code/stdaudio.py.html
 # import array
 def save_wav(resyn_sig, filename):
     resyn_sig = (resyn_sig * 32768)
@@ -75,34 +76,6 @@ def save_wav(resyn_sig, filename):
 
     w.writeframes(samples.tostring())
     w.close()
-
-# _SAMPLES_PER_SECOND = 44100
-# _CHANNEL_COUNT = 1           # 1 => mono, 2 => stereo
-# _CHECK_RATE = 44100          # How often to check the queue
-
-# def save_np_as_wav(f, npa):
-#     """
-#     Save all samples in array a to the WAVE file whose name is f.wav.
-#     """
-#
-#     # Saving to a WAV file isn't handled by PyGame, so use the
-#     # standard "wave" module instead.
-#
-#     import wave
-#
-#     fileName = wavfilename_format(f)
-#
-#     npa = npa * float(0x7fff)
-#
-#     samples = np.array(npa, np.int16)
-#     file = wave.open(fileName, 'w')
-#     file.setnchannels(_CHANNEL_COUNT)
-#     file.setsampwidth(2)  # 2 bytes
-#     file.setframerate(samplerate)
-#     file.setnframes(len(samples))
-#     file.setcomptype('NONE', 'descrip')  # No compression
-#     file.writeframes(samples.tostring())
-#     file.close()
 
 
 def triangle(length):
