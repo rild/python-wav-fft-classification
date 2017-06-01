@@ -48,7 +48,6 @@ def save_as_wav(resyn_sig, filename):
     #  2 ** 16 / 2
     #  32768.0
     # wavef=wavedata[1]*(1.0/32768.0) # pcm
-    # print (type(resyn_sig[1]))
     resyn_data = (resyn_sig * 32768.0).astype(np.int16)
     scipy.io.wavfile.write(filename, samplerate, resyn_data)
 
@@ -58,15 +57,12 @@ def save_as_wav(resyn_sig, filename):
 # import array
 def save_wav(resyn_sig, filename):
     resyn_sig = (resyn_sig * 32768)
-    # resyn_sig = resyn_sig.astype(int)
 
-    # write_wave.setparams(wavfile.getparams())
     resyn_sig = resyn_sig * float(0x7fff) # Why is this necessary? 06-01 rild
 
     samples = np.array(resyn_sig, np.int16)
 
     filename = wavfilename_format(filename)
-    # w = wave.Wave_write(filename)
     w = wave.Wave_write(filename)
     w.setnchannels(1)
     w.setsampwidth(2)  # 2 bytes
