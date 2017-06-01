@@ -53,6 +53,7 @@ def save_as_wav(resyn_sig, filename):
     scipy.io.wavfile.write(filename, samplerate, resyn_data)
 
 # it seems to have something wrong 17-05-30 rild
+# solved: it was just because of two other instance ... つらい
 # import array
 def save_wav(resyn_sig, filename):
     resyn_sig = (resyn_sig * 32768)
