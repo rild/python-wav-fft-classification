@@ -36,6 +36,14 @@ def load_wav_data(filename):
 
     return (sampling_rate, npframes)
 
+def wavfilename_format(fname):
+    import os.path
+    file_name = fname
+    name, ext = os.path.splitext(fname)
+    if ext != '.wav':
+        file_name = fname + '.wav'
+    return file_name
+
 def save_as_wav(resyn_sig, filename):
     #  2 ** 16 / 2
     #  32768.0
@@ -46,24 +54,63 @@ def save_as_wav(resyn_sig, filename):
 
 # it seems to have something wrong 17-05-30 rild
 # import array
-# def save_wav(resyn_sig, filename):
-#     resyn_sig = (resyn_sig * 32768)
-#     resyn_sig = resyn_sig.astype(int)
+def save_wav(resyn_sig, filename):
+    resyn_sig = (resyn_sig * 32768)
+    # resyn_sig = resyn_sig.astype(int)
+
+    # write_wave.setparams(wavfile.getparams())
+    resyn_sig = resyn_sig * float(0x7fff) # Why is this necessary? 06-01 rild
+
+    samples = np.array(resyn_sig, np.int16)
+
+    filename = wavfilename_format(filename)
+    # w = wave.Wave_write(filename)
+    w = wave.Wave_write(filename)
+    w.setnchannels(1)
+    w.setsampwidth(2)  # 2 bytes
+    w.setframerate(samplerate)
+    w.setnframes(len(samples))
+    w.setcomptype('NONE', 'descrip')  # No compression
+    # w.setparams((
+    #     1,  # channel, mono: 1
+    #     2,  # byte width
+    #     samplerate,  # sampling rate
+    #     len(samples),  # number of frames
+    #     "NONE", "not compressed"  # no compression
+    # ))
+
+    # print(w.getnchannels())
+    #  write_wave.writeframes(array.array('h', resyn_sig).tostring())
+    w.writeframes(samples.tostring())
+    w.close()
+
+# _SAMPLES_PER_SECOND = 44100
+# _CHANNEL_COUNT = 1           # 1 => mono, 2 => stereo
+# _CHECK_RATE = 44100          # How often to check the queue
+
+# def save_np_as_wav(f, npa):
+#     """
+#     Save all samples in array a to the WAVE file whose name is f.wav.
+#     """
 #
-#     write_wave = wave.Wave_write(filename)
-#     # write_wave.setparams(wavfile.getparams())
-#     w = wave.Wave_write(filename)
-#     w.setparams((
-#         1,  # channel
-#         2,  # byte width
-#         44100,  # sampling rate
-#         len(resyn_sig),  # number of frames
-#         "NONE", "not compressed"  # no compression
-#     ))
+#     # Saving to a WAV file isn't handled by PyGame, so use the
+#     # standard "wave" module instead.
 #
-#     print(w.getnchannels())
-#     write_wave.writeframes(array.array('h', resyn_sig).tostring())
-#     write_wave.close()
+#     import wave
+#
+#     fileName = wavfilename_format(f)
+#
+#     npa = npa * float(0x7fff)
+#
+#     samples = np.array(npa, np.int16)
+#     file = wave.open(fileName, 'w')
+#     file.setnchannels(_CHANNEL_COUNT)
+#     file.setsampwidth(2)  # 2 bytes
+#     file.setframerate(samplerate)
+#     file.setnframes(len(samples))
+#     file.setcomptype('NONE', 'descrip')  # No compression
+#     file.writeframes(samples.tostring())
+#     file.close()
 
 
 def triangle(length):
@@ -182,15 +229,13 @@ for i in range(len(spectrums)):
     resyn_sig[resyn_pos:resyn_pos + NFFT] += resyn_frame.astype(np.float64)
     resyn_pos += (NFFT - OVERLAP)
 
-print("compare")
-print(max(sig))
-print(max(resyn_sig))
 print("sig ==============")
 new_filename = "resyn" + "_NFFT_" + str(NFFT) + "_OVERLAP_" + str(OVERLAP)
-save_as_wav(resyn_sig, output_files_path + new_filename + ".wav")
+# save_as_wav(resyn_sig, output_files_path + new_filename + ".wav")
 
+# save_np_as_wav(output_files_path + 'test' + new_filename, resyn_sig)
 # print(len(resyn_sig))
-# save_wav(resyn_sig, output_files_path + new_filename + ".wav")
+save_wav(resyn_sig, output_files_path + new_filename + ".wav")
 
 ## スペクトログラムを保存
 save_spec_as_img(output_files_path + new_filename  + ".png")
