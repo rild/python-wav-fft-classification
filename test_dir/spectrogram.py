@@ -56,9 +56,10 @@ def save_as_wav(resyn_sig, filename):
 #     ref: http://introcs.cs.princeton.edu/python/code/stdaudio.py.html
 # import array
 def save_wav(resyn_sig, filename):
-    resyn_sig = (resyn_sig * 32768)
+    # resyn_sig = (resyn_sig * 32768)
 
     resyn_sig = resyn_sig * float(0x7fff) # Why is this necessary? 06-01 rild
+    # 0x7fff seems to mean 2 ** 16
 
     samples = np.array(resyn_sig, np.int16)
 
@@ -95,6 +96,11 @@ def save_spec_as_img(new_filename='non'):
 
 output_files_path = "out/"
 filename = "res/hanekawa_nandemoha01.wav"
+noise = "noise.wav"
+filename = noise
+
+tag = "resyn"
+
 
 (samplerate, waveform) = load_wav_data(filename)
 
@@ -191,7 +197,8 @@ for i in range(len(spectrums)):
     resyn_pos += (NFFT - OVERLAP)
 
 print("sig ==============")
-new_filename = "resyn" + "_NFFT_" + str(NFFT) + "_OVERLAP_" + str(OVERLAP)
+
+new_filename = tag + "_NFFT_" + str(NFFT) + "_OVERLAP_" + str(OVERLAP)
 
 save_wav(resyn_sig, output_files_path + new_filename + ".wav")
 
