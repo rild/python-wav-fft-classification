@@ -87,15 +87,6 @@ def triangle(length):
         ret[- h + 1:] = ret[h - 1:: -1]
     return ret
 
-def save_spec_as_img(new_filename='non'):
-    # matplotlib.imshowではextentを指定して軸を決められます。aspect="auto"で適切なサイズ比になります
-    plt.imshow(spec.T, extent=[0, time_song, 0, samplerate / 2], aspect="auto")
-    plt.xlabel("time[s]")
-    plt.ylabel("frequency[Hz]")
-    plt.colorbar()
-    if new_filename != 'non':
-        plt.savefig(new_filename)
-
 def save_spec(x, fs, new_filename='non'):
     # matplotlib.imshowではextentを指定して軸を決められます。aspect="auto"で適切なサイズ比になります
     f, t, Sxx = signal.spectrogram(x, fs)
@@ -115,29 +106,43 @@ tag = "stft"
 (samplerate, waveform) = load_wav_data(filename)
 
 sig = waveform
-NFFT = 2048  # フレームの大きさ
-OVERLAP = int(NFFT / 2)  # 窓をずらした時のフレームの重なり具合. half shiftが一般的らしい
-frame_length = sig.shape[0]  # wavファイルの全フレーム数
-time_song = float(frame_length) / samplerate  # 波形長さ(秒)
-time_unit = 1 / float(samplerate)  # 1サンプルの長さ(秒)
+NFFT = 512  # scipy.signal.stft Defaults to 256.
+# 512 is likely to draw the best spectrogram
+# if making 'nperseg' bigger, Zxx.shape become (freqs:decrease, times:increase)
+# Zxx[0], freqs, about half of 'nperseg', rild 06-05
+
+# OVERLAP = int(NFFT / 2)  # 窓をずらした時のフレームの重なり具合. half shiftが一般的らしい
+# frame_length = sig.shape[0]  # wavファイルの全フレーム数
+# time_song = float(frame_length) / samplerate  # 波形長さ(秒)
+# time_unit = 1 / float(samplerate)  # 1サンプルの長さ(秒)
 
 
 f, t, Zxx = signal.stft(sig, samplerate, nperseg=NFFT)
 print(f)
 print(sig.shape)
+print(Zxx[0])
+print(Zxx[0].shape)
+print(t.shape)
+print(f.shape)
 print(Zxx.shape)
+
+part = 150
+_t = t[:part]
+_Zxx = Zxx[:,:part]
+
+print(_t.shape)
+print(_Zxx.shape)
 
 _, xrec = signal.istft(Zxx, samplerate)
 
 
 resyn_sig = xrec
-new_filename = tag + "_log" + "_NFFT_" + str(NFFT) + "_OVERLAP_" + str(OVERLAP)
+new_filename = tag + "_log" + "_NFFT_" + str(NFFT) # + "_OVERLAP_" + str(OVERLAP)
 save_wav(resyn_sig, output_files_path + new_filename + ".wav")
 
-plt.pcolormesh(t, f, np.log(np.abs(Zxx) ** 2)) # log scale
-# plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=np.abs(Zxx).max())
-# https://matplotlib.org/api/pyplot_api.html
-# https://matplotlib.org/examples/pylab_examples/pcolor_demo.html
+plt.pcolormesh(_t, f, np.log(np.abs(_Zxx) ** 2)) # log scale
+# plt.pcolormesh(t, f, np.log(np.abs(Zxx) ** 2)) # log scale
+# plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=np.abs(Zxx).max()) # normal scale
 
 plt.title('STFT Magnitude')
 plt.ylabel('Frequency [Hz]')
@@ -169,6 +174,11 @@ return freqs, time, result
 ## scipy.signal.istft
 https://docs.scipy.org/doc/scipy-0.19.0/reference/generated/scipy.signal.istft.html#scipy.signal.istft
 
+
+## plt.pcolormesh
+
+https://matplotlib.org/api/pyplot_api.html
+https://matplotlib.org/examples/pylab_examples/pcolor_demo.html
 ---
 # Unused 
 ## scipy.signal.spectrogram
