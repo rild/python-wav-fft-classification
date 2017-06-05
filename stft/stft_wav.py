@@ -109,7 +109,7 @@ def save_spec(x, fs, new_filename='non'):
 output_files_path = "out/"
 filename = "res/hanekawa_nandemoha01.wav"
 
-tag = "stft_log"
+tag = "stft"
 
 
 (samplerate, waveform) = load_wav_data(filename)
@@ -131,16 +131,10 @@ _, xrec = signal.istft(Zxx, samplerate)
 
 
 resyn_sig = xrec
-new_filename = tag + "_NFFT_" + str(NFFT) + "_OVERLAP_" + str(OVERLAP)
+new_filename = tag + "_log" + "_NFFT_" + str(NFFT) + "_OVERLAP_" + str(OVERLAP)
 save_wav(resyn_sig, output_files_path + new_filename + ".wav")
 
-data = np.log(np.abs(Zxx) ** 2)
-
-print(data)
-print(data.max())
-exit(0)
-
-plt.pcolormesh(t, f, data, vmin=0, vmax=data.max())
+plt.pcolormesh(t, f, np.log(np.abs(Zxx) ** 2)) # log scale
 # plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=np.abs(Zxx).max())
 # https://matplotlib.org/api/pyplot_api.html
 # https://matplotlib.org/examples/pylab_examples/pcolor_demo.html
@@ -153,3 +147,31 @@ plt.savefig(output_files_path + new_filename + ".png")
 
 # save_spec(sig, samplerate, new_filename + ".png")
 exit(0)
+
+'''
+rild's memo 
+
+# Reference
+## scipy.signal.stft
+https://docs.scipy.org/doc/scipy-0.19.0/reference/generated/scipy.signal.stft.html
+
+### code reading
+ABST: It seems to be normal fft transform for me. 
+
+dependence 
+stft - _spectral_helper - _fft_helper
+ 
+#### _fft_helper memo 
+windowed fft: fft.pack (twosided) or np.fft.rfft (onesided) 
+return freqs, time, result 
+- 'freqs' seems to be difference phase proceduct from 'result'
+
+## scipy.signal.istft
+https://docs.scipy.org/doc/scipy-0.19.0/reference/generated/scipy.signal.istft.html#scipy.signal.istft
+
+---
+# Unused 
+## scipy.signal.spectrogram
+https://docs.scipy.org/doc/scipy-0.19.0/reference/generated/scipy.signal.spectrogram.html
+'''
+
