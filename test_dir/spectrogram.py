@@ -85,9 +85,13 @@ def triangle(length):
         ret[- h + 1:] = ret[h - 1:: -1]
     return ret
 
-def save_spec_as_img(new_filename='non'):
+def save_spec_as_img(sig, fs, new_filename='non'):
+    # data = np.log(np.abs(sig) ** 2)
+    data = np.abs(sig)
+
     # matplotlib.imshowではextentを指定して軸を決められます。aspect="auto"で適切なサイズ比になります
-    plt.imshow(spec.T, extent=[0, time_song, 0, samplerate / 2], aspect="auto")
+    # plt.imshow(sig.T, extent=[0, time_song, 0, fs / 2], aspect="auto")
+    plt.imshow(data.T, extent=[0, time_song, 0, fs / 2], aspect="auto")
     plt.xlabel("time[s]")
     plt.ylabel("frequency[Hz]")
     plt.colorbar()
@@ -96,10 +100,8 @@ def save_spec_as_img(new_filename='non'):
 
 output_files_path = "out/"
 filename = "res/hanekawa_nandemoha01.wav"
-noise = "noise.wav"
-filename = noise
 
-tag = "resyn"
+tag = "fft"
 
 
 (samplerate, waveform) = load_wav_data(filename)
@@ -121,22 +123,30 @@ time_ruler = np.arange(start, stop, step)
 
 # 💥 2.
 # 窓関数は周波数解像度が高いハミング窓を用います
-window = np.hamming(NFFT)
+# window = np.hamming(NFFT)
+window = np.hanning(NFFT)
 
-spec = np.zeros([len(time_ruler), int(1 + (NFFT / 2))])  # 転置状態で定義初期化
-pos = 0
+# spec = np.zeros([len(time_ruler), int(1 + (NFFT / 2))])  # 転置状態で定義初期化
+# pos = 0
 
 # spec的な 復元したいからデータを残す
 # spectrums = np.zeros([len(time_ruler), NFFT])
 # astype(complex) をつけないと spectrum を代入する時に, 複素数成分が消えちゃう
 spectrums = np.zeros([len(time_ruler), NFFT]).astype(complex)
+results = np.zeros([len(time_ruler), int(1 + (NFFT / 2))])
+pos = 0
 
 # dpends on params: spec, spectrums
-def store_data(fft_data, spectrum):
-    for i in range(len(spec[fft_index])):
-        spec[fft_index][-i - 1] = fft_data[i]
+# def store_data(fft_data, spectrum):
+#     for i in range(len(spec[fft_index])):
+#         spec[fft_index][-i - 1] = fft_data[i]
+#
+#         # 復元したいから複素数も含めたデータを残したい
+#         spectrums[fft_index][-i - 1] = spectrum[i]
 
-        # 復元したいから複素数も含めたデータを残したい
+def store_data(result, spectrum):
+    for i in range(len(results[fft_index])):
+        results[fft_index][-i - 1] = result[i]
         spectrums[fft_index][-i - 1] = spectrum[i]
 
 for fft_index in range(len(time_ruler)):
@@ -150,17 +160,21 @@ for fft_index in range(len(time_ruler)):
         # 💥 3.FFTして周波数成分を求めます
         # rfftだと非負の周波数のみが得られます
         fft_result = np.fft.rfft(windowed)
+        spectrum = np.fft.fft(windowed)
         # 復元したいから複素数も含めたデータを残したい
-        spectrum = fft(windowed)
 
         # 💥 4.周波数には虚数成分を含むので絶対値をabsで求めてから2乗します
         # グラフで見やすくするために対数をとります
-        fft_data = np.log(np.abs(fft_result) ** 2)
+        # fft_data = np.log(np.abs(fft_result) ** 2)
         # fft_data = np.log(np.abs(fft_result))
         # fft_data = np.abs(fft_result) ** 2
         # fft_data = np.abs(fft_result)
         # これで求められました。あとはspecに格納するだけです
-        store_data(fft_data, spectrum)
+        # store_data(fft_data, spectrum)
+
+        # scale changing should be in the other place... rild, 17-06-05
+
+        store_data(fft_result, spectrum)
 
         # 💥 4. 窓をずらして次のフレームへ
         pos += (NFFT - OVERLAP)
@@ -198,9 +212,10 @@ for i in range(len(spectrums)):
 
 print("sig ==============")
 
+# new_filename = tag + "_log" + "_NFFT_" + str(NFFT) + "_OVERLAP_" + str(OVERLAP)
 new_filename = tag + "_NFFT_" + str(NFFT) + "_OVERLAP_" + str(OVERLAP)
 
 save_wav(resyn_sig, output_files_path + new_filename + ".wav")
 
 ## スペクトログラムを保存
-save_spec_as_img(output_files_path + new_filename  + ".png")
+save_spec_as_img(results, samplerate, output_files_path + new_filename  + ".png")
