@@ -101,7 +101,7 @@ output_files_path = "out/"
 filename = "res/hanekawa_nandemoha01.wav"
 
 tag = "stft"
-
+scale = 'log'
 
 (samplerate, waveform) = load_wav_data(filename)
 
@@ -172,6 +172,10 @@ https://docs.scipy.org/doc/scipy-0.19.0/reference/generated/scipy.signal.istft.h
 
 https://matplotlib.org/api/pyplot_api.html
 https://matplotlib.org/examples/pylab_examples/pcolor_demo.html
+
+## numpy array, get row column 
+http://qiita.com/supersaiakujin/items/d63c73bb7b5aac43898a#%E5%88%97%E3%82%92%E6%8A%BD%E5%87%BA%E3%81%99%E3%82%8B 
+
 ---
 # Unused 
 ## scipy.signal.spectrogram
