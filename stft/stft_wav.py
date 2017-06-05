@@ -101,7 +101,9 @@ output_files_path = "out/"
 filename = "res/hanekawa_nandemoha01.wav"
 
 tag = "stft"
-scale = 'log'
+scales = {0:'normal', 1:'log'}
+scale = scales[0]
+part = 'all' # or int val, less than t.shape (time steps)
 
 (samplerate, waveform) = load_wav_data(filename)
 
@@ -119,23 +121,21 @@ NFFT = 512  # scipy.signal.stft Defaults to 256.
 
 f, t, Zxx = signal.stft(sig, samplerate, nperseg=NFFT)
 
-part = 150
-_t = t[:part]
-_Zxx = Zxx[:,:part]
-
-print(_t.shape)
-print(_Zxx.shape)
-
 _, xrec = signal.istft(Zxx, samplerate)
 
 
 resyn_sig = xrec
-new_filename = tag + "_log" + "_NFFT_" + str(NFFT) # + "_OVERLAP_" + str(OVERLAP)
+new_filename = tag + "_" + scale + "_NFFT_" + str(NFFT) + '_part_' + part# + "_OVERLAP_" + str(OVERLAP)
 save_wav(resyn_sig, output_files_path + new_filename + ".wav")
 
-plt.pcolormesh(_t, f, np.log(np.abs(_Zxx) ** 2)) # log scale
-# plt.pcolormesh(t, f, np.log(np.abs(Zxx) ** 2)) # log scale
-# plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=np.abs(Zxx).max()) # normal scale
+if part != 'all':
+    _t = t[:part]
+    _Zxx = Zxx[:, :part]
+    plt.pcolormesh(_t, f, np.log(np.abs(_Zxx) ** 2)) # log scale
+elif scale == 'log':
+    plt.pcolormesh(t, f, np.log(np.abs(Zxx) ** 2)) # log scale
+elif scale == 'normal':
+    plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=np.abs(Zxx).max()) # normal scale
 
 plt.title('STFT Magnitude')
 plt.ylabel('Frequency [Hz]')
