@@ -101,8 +101,7 @@ output_files_path = "out/"
 filename = "res/hanekawa_nandemoha01.wav"
 
 tag = "stft"
-scales = {0:'normal', 1:'log'}
-scale = scales[0]
+scale = 'log' # 'normal', 'log'
 part = 'all' # or int val, less than t.shape (time steps)
 
 (samplerate, waveform) = load_wav_data(filename)
