@@ -118,13 +118,6 @@ NFFT = 512  # scipy.signal.stft Defaults to 256.
 
 
 f, t, Zxx = signal.stft(sig, samplerate, nperseg=NFFT)
-print(f)
-print(sig.shape)
-print(Zxx[0])
-print(Zxx[0].shape)
-print(t.shape)
-print(f.shape)
-print(Zxx.shape)
 
 part = 150
 _t = t[:part]
